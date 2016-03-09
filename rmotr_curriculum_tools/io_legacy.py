@@ -91,44 +91,62 @@ def read_course_from_path(course_directory_path):
     return course
 
 
-def get_last_unit(course_directory_path):
-    read_units(course_directory_path)
+def _create_assignment_lesson_files(lesson):
+    py_paths = [
+        lesson.directory_path / MAIN_PY_NAME,
+        lesson.directory_path / TEST_PY_NAME
+    ]
+    for path in py_paths:
+        with path.open('w') as fp:
+            fp.write('# Empty')
 
 
-def get_last_unit_order(course_directory_path):
-    if has_units(course_directory_path):
-        last_unit = get_last_unit(course_directory_path)
-        order = get_order(last_unit)
-        return order + 1
-    return 1
-
-
-def create_unit(course_directory_path, name, order):
-    unit_directory_path = (
-        course_directory_path /
-        utils.generate_unit_directory_name(name, order)
+def _create_lesson(lesson):
+    lesson.directory_path = (
+        lesson.unit.directory_path /
+        utils.generate_lesson_directory_name(lesson.name, lesson.order)
     )
-
-    unit_directory_path.mkdir()
-    dot_rmotr_path = unit_directory_path / DOT_RMOTR_FILE_NAME
+    lesson.directory_path.mkdir()
+    dot_rmotr_path = lesson.directory_path / DOT_RMOTR_FILE_NAME
     with dot_rmotr_path.open(mode='w') as fp:
-        fp.write(utils.generate_unit_dot_rmotr_file(name=name))
+        fp.write(lesson.get_dot_rmotr_as_toml())
 
-    return unit_directory_path
+    readme_path = lesson.directory_path / README_FILE_NAME
+    with readme_path.open(mode='w') as fp:
+        fp.write(lesson.readme_content or '')
+
+    if lesson.type == ASSIGNMENT:
+        _create_assignment_lesson_files(lesson)
+
+    return lesson
 
 
-def add_unit_to_course(course_directory_path, name, order=None):
-    if not isinstance(course_directory_path, Path):
-        course_directory_path = Path(course_directory_path)
+def flush_lesson(lesson):
+    if not lesson.is_created:
+        _create_lesson(lesson)
 
-    course = read_course_from_path(course_directory_path)
 
-    last_unit = course.last_unit
-    last_unit_order = (last_unit and last_unit.order) or 0
+def _create_unit(unit):
+    unit.directory_path = (
+        unit.course.directory_path /
+        utils.generate_unit_directory_name(unit.name, unit.order)
+    )
+    unit.directory_path.mkdir()
+    dot_rmotr_path = unit.directory_path / DOT_RMOTR_FILE_NAME
+    with dot_rmotr_path.open(mode='w') as fp:
+        fp.write(unit.get_dot_rmotr_as_toml())
 
-    if order is None:
-        order = last_unit_order + 1
 
-    rename = (order <= last_unit_order)
+def flush_unit(unit):
+    if not unit.is_created:
+        _create_unit(unit)
+    if unit.new_order:
+        _rename_unit(unit)
+    for lesson in unit.iter_lessons():
+        flush_lesson(lesson)
 
-    return create_unit(course_directory_path, name, order)
+
+def flush_course(course):
+    for unit in course.iter_units():
+        if unit.is_dirty:
+            flush_unit(unit)

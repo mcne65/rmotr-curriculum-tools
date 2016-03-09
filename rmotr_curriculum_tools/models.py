@@ -55,6 +55,13 @@ class Course(BaseTrackObject):
         for unit in sorted(self._units, key=lambda u: u.order):
             yield unit
 
+    @property
+    def last_unit(self):
+        if not self._units:
+            return None
+
+        return sorted(self._units, key=lambda u: u.order)[-1]
+
 
 class Unit(BaseTrackObject):
     def __init__(self, course, uuid, name, order, directory_path=None):

@@ -2,6 +2,7 @@ import unittest
 from pathlib import Path
 import tempfile
 import shutil
+import pytoml as toml
 
 from base_tests import IOTestCase
 from rmotr_curriculum_tools import io
@@ -238,12 +239,9 @@ This is the assignment description""",
         self.assertEqual(lesson_2.type, 'assignment')
         self.assertEqual(lesson_2.uuid, 'd4500b25-151e-4e5d-9fc1-83feca938c3e')
 
-from rmotr_curriculum_tools.models import *
 
-
-class WriteCourseToDiskTestCase(BaseIOTestCase):
+class AddUnitToCourseTestCase(BaseIOTestCase):
     def setUp(self):
-        self.course_uuid = 'a7c2574a-a28b-4b19-bb64-c1feaa05dd52'
         self.course_name = 'Advanced Python Programming'
         self.course_slug = 'advanced-python-programming'
         self.course_directory_path = Path(
@@ -260,179 +258,39 @@ track = "python"
         # Preconditions
         self.assertDirectoryExists(self.course_directory_path)
 
-        self.course = Course(
-            directory_path=self.course_directory_path,
-            uuid=self.course_uuid,
-            name=self.course_name,
-            track='python'
-        )
-
     def tearDown(self):
         shutil.rmtree(str(self.course_directory_path.absolute()))
 
-    def test_flush_new_reading_lesson_creates_it_correctly(self):
-        unit_1_path = self._create_testing_unit(
-            'Python Introduction', 'unit-1-python-introduction',
-            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
+    def test_add_unit_to_empty_course(self):
+        generated_unit_path = io.add_unit_to_course(
+            course_directory_path=self.course_directory_path,
+            name='Python Intro')
 
-        unit = Unit(
-            course=self.course,
-            directory_path=unit_1_path,
-            uuid='f4ed574a-a11b-4119-bb64-c1feaa05ea55',
-            name="Python Introduction",
-            order=1
-        )
-        self.course.add_unit(unit)
+        unit_path = self.course_directory_path / 'unit-1-python-intro'
+        dot_rmotr_path = unit_path / '.rmotr'
 
-        lesson = ReadingLesson(
-            unit=unit,
-            uuid='0d900c98-935c-4f00-aa4d-cb626409e756',
-            name='Python intro',
-            order=1
-        )
-        self.assertFalse(lesson.is_created)
-
-        io.flush_lesson(lesson)
-
-        lesson_path = unit_1_path / 'lesson-1-python-intro'
-        dot_rmotr_path = lesson_path / '.rmotr'
-
-        self.assertDirectoryExists(lesson_path)
+        self.assertEqual(generated_unit_path, unit_path)
+        self.assertDirectoryExists(unit_path)
         self.assertFileExists(dot_rmotr_path)
 
         with dot_rmotr_path.open() as fp:
             dot_rmotr_content = toml.loads(fp.read())
-            self.assertEqual(
-                dot_rmotr_content,
-                {
-                    'uuid': '0d900c98-935c-4f00-aa4d-cb626409e756',
-                    'name': 'Python intro',
-                    'type': 'reading'
-                }
-            )
+            self.assertTrue('uuid' in dot_rmotr_content)
+            self.assertEqual(dot_rmotr_content['name'], 'Python Intro')
 
-        self.assertFileExists(lesson_path / 'README.md')
-
-    def test_flush_lessons_with_unit_not_empty(self):
-        unit_1_path = self._create_testing_unit(
-            'Python Introduction', 'unit-1-python-introduction',
+    def test_add_unit_to_not_empty_course_at_end(self):
+        self._create_testing_unit(
+            "Python Intro", 'unit-1-python-intro',
             'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
 
-        lesson_1_path = self._create_testing_assignment_lesson(
-            unit_1_path, 'Python intro', 'leson-1-python-intro',
-            '0d900c98-935c-4f00-aa4d-cb626409e756',
-            "README", "# main.py", "# tests.py"
-        )
+        unit_1_path = self.course_directory_path / 'unit-1-python-intro'
+        self.assertDirectoryExists(unit_1_path)
 
-        unit = Unit(
-            course=self.course,
-            directory_path=unit_1_path,
-            uuid='f4ed574a-a11b-4119-bb64-c1feaa05ea55',
-            name="Python Introduction",
-            order=1
-        )
-        self.course.add_unit(unit)
+        add_unit_to_course(
+            course_directory_path=self.course_directory_path,
+            name='Data Types')
 
-        lesson = AssignmentLesson(
-            unit=unit,
-            uuid='22c10c98-935c-4f00-c8ad-cb6264097d9a',
-            name='Data Types',
-            order=2
-        )
-        self.assertFalse(lesson.is_created)
-
-        io.flush_lesson(lesson)
-
-        lesson_path = unit_1_path / 'lesson-2-data-types'
-        dot_rmotr_path = lesson_path / '.rmotr'
-
-        self.assertDirectoryExists(lesson_path)
-        self.assertFileExists(dot_rmotr_path)
-
-        with dot_rmotr_path.open() as fp:
-            dot_rmotr_content = toml.loads(fp.read())
-            self.assertEqual(
-                dot_rmotr_content,
-                {
-                    'uuid': '22c10c98-935c-4f00-c8ad-cb6264097d9a',
-                    'name': 'Data Types',
-                    'type': 'assignment'
-                }
-            )
-
-        self.assertFileExists(lesson_path / 'main.py')
-        self.assertFileExists(lesson_path / 'README.md')
-        self.assertFileExists(lesson_path / 'tests.py')
-
-    def test_flush_multiple_new_lessons(self):
-        unit_1_path = self._create_testing_unit(
-            'Python Introduction', 'unit-1-python-introduction',
-            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
-
-        unit = Unit(
-            course=self.course,
-            directory_path=unit_1_path,
-            uuid='f4ed574a-a11b-4119-bb64-c1feaa05ea55',
-            name="Python Introduction",
-            order=1
-        )
-        self.course.add_unit(unit)
-
-        lesson_1 = AssignmentLesson(
-            unit=unit,
-            uuid='0d900c98-935c-4f00-aa4d-cb626409e756',
-            name='Python intro',
-            order=1
-        )
-
-        lesson_2 = AssignmentLesson(
-            unit=unit,
-            uuid='22c10c98-935c-4f00-c8ad-cb6264097d9a',
-            name='Data Types',
-            order=2
-        )
-        unit.add_lesson(lesson_1)
-        unit.add_lesson(lesson_2)
-
-        self.assertFalse(lesson_1.is_created)
-        self.assertFalse(lesson_2.is_created)
-
-        io.flush_unit(unit)
-
-        # Unit 2
-        lesson_path = unit_1_path / 'lesson-2-data-types'
-        dot_rmotr_path = lesson_path / '.rmotr'
-
-        self.assertDirectoryExists(lesson_path)
-        self.assertFileExists(dot_rmotr_path)
-
-        with dot_rmotr_path.open() as fp:
-            dot_rmotr_content = toml.loads(fp.read())
-            self.assertEqual(
-                dot_rmotr_content,
-                {
-                    'uuid': '22c10c98-935c-4f00-c8ad-cb6264097d9a',
-                    'name': 'Data Types',
-                    'type': 'assignment'
-                }
-            )
-
-        self.assertFileExists(lesson_path / 'main.py')
-        self.assertFileExists(lesson_path / 'README.md')
-        self.assertFileExists(lesson_path / 'tests.py')
-
-    def test_add_flush_unit(self):
-        unit = Unit(
-            course=self.course,
-            uuid='f4ed574a-a11b-4119-bb64-c1feaa05ea55',
-            name="Python Introduction",
-            order=1
-        )
-        self.assertFalse(unit.is_created)
-
-        io.flush_unit(unit)
-
-        unit_path = self.course_directory_path / 'unit-1-python-introduction'
+        unit_path = self.course_directory_path / 'unit-2-data-types'
         dot_rmotr_path = unit_path / '.rmotr'
 
         self.assertDirectoryExists(unit_path)
@@ -440,28 +298,32 @@ track = "python"
 
         with dot_rmotr_path.open() as fp:
             dot_rmotr_content = toml.loads(fp.read())
-            self.assertEqual(
-                dot_rmotr_content,
-                {
-                    'uuid': 'f4ed574a-a11b-4119-bb64-c1feaa05ea55',
-                    'name': 'Python Introduction'
-                }
-            )
+            self.assertTrue('uuid' in dot_rmotr_content)
+            self.assertEqual(dot_rmotr_content['name'], 'Data Types')
 
-    def test_add_unit_at_the_end_with_empty_course(self):
-        unit = Unit(
-            course=self.course,
-            uuid='f4ed574a-a11b-4119-bb64-c1feaa05ea55',
-            name="Python Introduction",
-            order=1
-        )
-        self.course.add_unit(unit)
+    def test_add_unit_to_in_between_other_units(self):
+        self._create_testing_unit(
+            "Python Intro", 'unit-1-python-intro',
+            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
+        self._create_testing_unit(
+            "Data Types", 'unit-2-data-types',
+            '8a22574a-a11b-4119-a964-c1feaa05c833')
+        self._create_testing_unit(
+            "Collections", 'unit-3-collections',
+            'c822574a-a81b-4aa9-a964-c1feaa05a7b2')
 
-        self.assertFalse(unit.is_created)
+        unit_1_path = self.course_directory_path / 'unit-1-python-intro'
+        self.assertDirectoryExists(unit_1_path)
+        unit_2_path = self.course_directory_path / 'unit-2-data-types'
+        self.assertDirectoryExists(unit_2_path)
+        unit_3_path = self.course_directory_path / 'unit-3-collections'
+        self.assertDirectoryExists(unit_3_path)
 
-        io.flush_course(self.course)
+        add_unit_to_course(
+            course_directory_path=self.course_directory_path,
+            name='Interpreters', order=2)
 
-        unit_path = self.course_directory_path / 'unit-1-python-introduction'
+        unit_path = self.course_directory_path / 'unit-2-interpreters'
         dot_rmotr_path = unit_path / '.rmotr'
 
         self.assertDirectoryExists(unit_path)
@@ -469,57 +331,13 @@ track = "python"
 
         with dot_rmotr_path.open() as fp:
             dot_rmotr_content = toml.loads(fp.read())
-            self.assertEqual(
-                dot_rmotr_content,
-                {
-                    'uuid': 'f4ed574a-a11b-4119-bb64-c1feaa05ea55',
-                    'name': 'Python Introduction'
-                }
-            )
+            self.assertTrue('uuid' in dot_rmotr_content)
+            self.assertEqual(dot_rmotr_content['name'], 'Interpreters')
 
-
-class RenameCourseToDiskTestCase(BaseIOTestCase):
-    def test_read_course_with_multiple_units(self):
-        unit_1_path = self._create_testing_unit(
-            'Python Introduction', 'unit-1-python-introduction',
-            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
-        unit_2_path = self._create_testing_unit(
-            'Data types', 'unit-2-data-types',
-            '9f34bcd6-cf83-4cd4-983a-9f36c733b29c')
-
-        course = io.read_course_from_path(self.course_directory_path)
-
-        self.assertEqual(course.directory_path, self.course_directory_path)
-        self.assertEqual(course.uuid, "a7c2574a-a28b-4b19-bb64-c1feaa05dd52")
-        self.assertEqual(course.name, "Advanced Python Programming")
-        self.assertEqual(course.track, 'python')
-
-        self.assertEqual(course.unit_count(), 2)
-        units_iter = course.iter_units()
-        unit_1 = next(units_iter)
-
-        self.assertEqual(unit_1.course, course)
-        self.assertEqual(unit_1.name, 'Python Introduction')
-        self.assertEqual(unit_1.uuid, 'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
-        self.assertEqual(
-            unit_1.directory_path,
-            course.directory_path / 'unit-1-python-introduction')
-        self.assertEqual(unit_1.order, 1)
-
-        unit_2 = next(units_iter)
-
-        self.assertEqual(unit_2.course, course)
-        self.assertEqual(unit_2.name, 'Data types')
-        self.assertEqual(unit_2.uuid, '9f34bcd6-cf83-4cd4-983a-9f36c733b29c')
-        self.assertEqual(
-            unit_2.directory_path,
-            course.directory_path / 'unit-2-data-types')
-        self.assertEqual(unit_2.order, 2)
-
-        unit = Unit(
-            course=course,
-            uuid='f4ed574a-a11b-4119-bb64-c1feaa05ea55',
-            name="Collections",
-            order=3
-        )
-        course.add_unit(unit)
+        # Postconditions
+        unit_1_path = self.course_directory_path / 'unit-1-python-intro'
+        self.assertDirectoryExists(unit_1_path)
+        unit_3_path = self.course_directory_path / 'unit-3-data-types'
+        self.assertDirectoryExists(unit_3_path)
+        unit_4_path = self.course_directory_path / 'unit-4-collections'
+        self.assertDirectoryExists(unit_4_path)

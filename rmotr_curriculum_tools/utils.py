@@ -1,4 +1,7 @@
 import re
+import uuid as uuid_module
+import pytoml as toml
+
 from .exceptions import InvalidUnitNameException
 
 try:
@@ -14,6 +17,13 @@ def slugify(text, delim=u'-'):
     for word in _punct_re.split(text.lower()):
         result.append(word)
     return unicode_type(delim.join(result))
+
+
+def generate_unit_dot_rmotr_file(name, uuid=None):
+    return toml.dumps({
+        'uuid': str(uuid or uuid_module.uuid4()),
+        'name': name
+    })
 
 
 def get_order_from_numbered_object_directory_name(dir_name):
