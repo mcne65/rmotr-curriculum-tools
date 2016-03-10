@@ -13,7 +13,7 @@ class BaseTrackObject(object):
             self.__class__.__name__, self.name, self.uuid
         )
 
-    def _slugify_wiht_order(self, prefix, order, name):
+    def _slugify_with_order(self, prefix, order, name):
         return '{prefix}-{order}{slug}'.format(
             prefix=prefix,
             order=order,
@@ -30,10 +30,6 @@ class BaseTrackObject(object):
     @directory_path.setter
     def directory_path(self, path):
         self._directory_path = (isinstance(path, Path) and path) or Path(path)
-
-    @property
-    def is_created(self):
-        return self._directory_path is not None
 
 
 class Course(BaseTrackObject):
@@ -55,12 +51,19 @@ class Course(BaseTrackObject):
         for unit in sorted(self._units, key=lambda u: u.order):
             yield unit
 
+    @property
+    def last_unit(self):
+        if not self._units:
+            return None
+
+        return sorted(self._units, key=lambda u: u.order)[-1]
+
 
 class Unit(BaseTrackObject):
     def __init__(self, course, uuid, name, order, directory_path=None):
         self.course = course
         self._directory_path = directory_path
-        self.slug = self._slugify_wiht_order('unit', order, name)
+        self.slug = self._slugify_with_order('unit', order, name)
         self.uuid = uuid
         self.name = name
         self.order = order
@@ -84,19 +87,18 @@ class Unit(BaseTrackObject):
             yield lesson
 
     @property
-    def is_dirty(self):
-        return not self.is_created or self.new_order
+    def last_lesson(self):
+        if not self._lessons:
+            return None
 
-    @property
-    def new_order(self):
-        return False
+        return sorted(self._lessons, key=lambda l: l.order)[-1]
 
 class Lesson(BaseTrackObject):
     def __init__(self, unit, uuid, name, order,
                  directory_path=None, readme_path=None, readme_content=None):
         self.unit = unit
         self._directory_path = directory_path
-        self.slug = self._slugify_wiht_order('lesson', order, name)
+        self.slug = self._slugify_with_order('lesson', order, name)
         self.uuid = uuid
         self.name = name
         self.order = order
