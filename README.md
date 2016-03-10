@@ -18,3 +18,9 @@ Comming soon:
 $ rmotr_curriculum remove_unit PATH_TO_UNIT
 $ rmotr_curriculum remove_lesson PATH_TO_LESSON
 ```
+
+### Testing
+
+```bash
+$ make test
+```
