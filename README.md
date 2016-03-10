@@ -10,12 +10,11 @@ $ rmotr_curriculum create_unit PATH_TO_COURSE UNIT_NAME -o UNIT_ORDER
 # Create lesson in a given unit. Order is optional, will be
 # appended at the end by default
 $ rmotr_curriculum create_lesson PATH_TO_UNIT LESSON_NAME -t lesson-type -o LESSON_ORDER
-```
 
-Comming soon:
-
-```bash
+# Remove a specific unit by providing its path
 $ rmotr_curriculum remove_unit PATH_TO_UNIT
+
+# Remove a specific lesson by providing its path
 $ rmotr_curriculum remove_lesson PATH_TO_LESSON
 ```
 
