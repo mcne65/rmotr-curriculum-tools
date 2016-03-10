@@ -596,3 +596,192 @@ track = "python"
             self.assertEqual(dot_rmotr_content['name'], 'History')
 
         self.assertFileExists(readme_path)
+
+
+class RemoveUnitFromCourseTestCase(BaseIOTestCase):
+    def setUp(self):
+        self.course_name = 'Advanced Python Programming'
+        self.course_slug = 'advanced-python-programming'
+        self.course_directory_path = Path(
+            tempfile.mkdtemp(prefix=self.course_slug))
+
+        dot_rmotr_path = self.course_directory_path / '.rmotr'
+        with dot_rmotr_path.open(mode='w') as fp:
+            fp.write("""
+uuid = "a7c2574a-a28b-4b19-bb64-c1feaa05dd52"
+name = "Advanced Python Programming"
+track = "python"
+""")
+
+        # Preconditions
+        self.assertDirectoryExists(self.course_directory_path)
+
+    def tearDown(self):
+        shutil.rmtree(str(self.course_directory_path.absolute()))
+
+    def test_remove_only_unit_left(self):
+        self._create_testing_unit(
+            "Python Intro", 'unit-1-python-intro',
+            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
+
+        unit_1_path = self.course_directory_path / 'unit-1-python-intro'
+        self.assertDirectoryExists(unit_1_path)
+
+        io.remove_unit_from_directory(directory_path=unit_1_path)
+
+        self.assertDirectoryDoesntExist(unit_1_path)
+
+    def test_remove_last_unit(self):
+        self._create_testing_unit(
+            "Python Intro", 'unit-1-python-intro',
+            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
+        self._create_testing_unit(
+            "Data Types", 'unit-2-data-types',
+            'c8aa574a-a11b-4a99-bb64-c1feaa05a23b')
+
+        unit_1_path = self.course_directory_path / 'unit-1-python-intro'
+        unit_2_path = self.course_directory_path / 'unit-2-data-types'
+        self.assertDirectoryExists(unit_1_path)
+        self.assertDirectoryExists(unit_2_path)
+
+        io.remove_unit_from_directory(directory_path=unit_2_path)
+
+        self.assertDirectoryDoesntExist(unit_2_path)
+        self.assertDirectoryExists(unit_1_path)
+
+    def test_remove_first_unit(self):
+        self._create_testing_unit(
+            "Python Intro", 'unit-1-python-intro',
+            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
+        self._create_testing_unit(
+            "Data Types", 'unit-2-data-types',
+            'c8aa574a-a11b-4a99-bb64-c1feaa05a23b')
+
+        unit_1_path = self.course_directory_path / 'unit-1-python-intro'
+        unit_2_path = self.course_directory_path / 'unit-2-data-types'
+        self.assertDirectoryExists(unit_1_path)
+        self.assertDirectoryExists(unit_2_path)
+
+        io.remove_unit_from_directory(directory_path=unit_1_path)
+
+        self.assertDirectoryDoesntExist(unit_1_path)
+        self.assertDirectoryExists(
+            self.course_directory_path / 'unit-1-data-types'
+        )
+
+    def test_remove_unit_in_between(self):
+        self._create_testing_unit(
+            "Python Intro", 'unit-1-python-intro',
+            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
+        self._create_testing_unit(
+            "Data Types", 'unit-2-data-types',
+            'c8aa574a-a11b-4a99-bb64-c1feaa05a23b')
+        self._create_testing_unit(
+            "Collections", 'unit-3-collections',
+            'ac33574a-a11b-4289-bb9c-c1feaa0531aa')
+
+        unit_1_path = self.course_directory_path / 'unit-1-python-intro'
+        unit_2_path = self.course_directory_path / 'unit-2-data-types'
+        unit_3_path = self.course_directory_path / 'unit-3-collections'
+        self.assertDirectoryExists(unit_1_path)
+        self.assertDirectoryExists(unit_2_path)
+        self.assertDirectoryExists(unit_3_path)
+
+        io.remove_unit_from_directory(directory_path=unit_2_path)
+
+        self.assertDirectoryDoesntExist(unit_2_path)
+        self.assertDirectoryExists(unit_1_path)
+        self.assertDirectoryExists(
+            self.course_directory_path / 'unit-2-collections'
+        )
+
+
+class RemoveLessonFromUnitTestCase(BaseIOTestCase):
+    def setUp(self):
+        self.course_name = 'Advanced Python Programming'
+        self.course_slug = 'advanced-python-programming'
+        self.course_directory_path = Path(
+            tempfile.mkdtemp(prefix=self.course_slug))
+
+        dot_rmotr_path = self.course_directory_path / '.rmotr'
+        with dot_rmotr_path.open(mode='w') as fp:
+            fp.write("""
+uuid = "a7c2574a-a28b-4b19-bb64-c1feaa05dd52"
+name = "Advanced Python Programming"
+track = "python"
+""")
+        self._create_testing_unit(
+            "Python Intro", 'unit-1-python-intro',
+            'f4ed574a-a11b-4119-bb64-c1feaa05ea55')
+
+        # Preconditions
+        self.assertDirectoryExists(self.course_directory_path)
+        self.unit_1_path = self.course_directory_path / 'unit-1-python-intro'
+        self.assertDirectoryExists(self.unit_1_path)
+
+    def tearDown(self):
+        shutil.rmtree(str(self.course_directory_path.absolute()))
+
+    def test_remove_only_lesson_left(self):
+        lesson_path = self._create_testing_reading_lesson(
+            self.unit_1_path, 'Python Intro', 'lesson-1-python-intro',
+            'aaaa574a-ac1b-4aa9-a964-c1feaa05c811', "Lesson 1 Unit 1")
+        self.assertDirectoryExists(lesson_path)
+
+        io.remove_lesson_from_directory(directory_path=lesson_path)
+
+        self.assertDirectoryDoesntExist(lesson_path)
+
+    def test_remove_last_lesson(self):
+        lesson_1 = self._create_testing_reading_lesson(
+            self.unit_1_path, 'Python Intro', 'lesson-1-python-intro',
+            'aaaa574a-ac1b-4aa9-a964-c1feaa05c811', "Lesson 1 Unit 1")
+        lesson_2 = self._create_testing_reading_lesson(
+            self.unit_1_path, 'Interpreters', 'lesson-2-interpreters',
+            'bbbb574a-ac1b-4aa9-a964-c1feaa05cca2', "Lesson 2 Unit 1")
+
+        self.assertDirectoryExists(lesson_1)
+        self.assertDirectoryExists(lesson_2)
+
+        io.remove_lesson_from_directory(lesson_2)
+
+        self.assertDirectoryDoesntExist(lesson_2)
+        self.assertDirectoryExists(lesson_1)
+
+    def test_remove_first_lesson(self):
+        lesson_1 = self._create_testing_reading_lesson(
+            self.unit_1_path, 'Python Intro', 'lesson-1-python-intro',
+            'aaaa574a-ac1b-4aa9-a964-c1feaa05c811', "Lesson 1 Unit 1")
+        lesson_2 = self._create_testing_reading_lesson(
+            self.unit_1_path, 'Interpreters', 'lesson-2-interpreters',
+            'bbbb574a-ac1b-4aa9-a964-c1feaa05cca2', "Lesson 2 Unit 1")
+
+        self.assertDirectoryExists(lesson_1)
+        self.assertDirectoryExists(lesson_2)
+
+        io.remove_lesson_from_directory(lesson_1)
+
+        self.assertDirectoryDoesntExist(lesson_1)
+        self.assertDirectoryExists(
+            self.unit_1_path / 'lesson-1-interpreters')
+
+    def test_remove_lesson_in_between(self):
+        lesson_1 = self._create_testing_reading_lesson(
+            self.unit_1_path, 'Python Intro', 'lesson-1-python-intro',
+            'aaaa574a-ac1b-4aa9-a964-c1feaa05c811', "Lesson 1 Unit 1")
+        lesson_2 = self._create_testing_reading_lesson(
+            self.unit_1_path, 'Interpreters', 'lesson-2-interpreters',
+            'bbbb574a-ac1b-4aa9-a964-c1feaa05cca2', "Lesson 2 Unit 1")
+        lesson_3 = self._create_testing_reading_lesson(
+            self.unit_1_path, 'History', 'lesson-3-history',
+            'fff574a-aa1b-4a8c-a964-c1feaa0cabb2', "Lesson 3 Unit 1")
+
+        self.assertDirectoryExists(lesson_1)
+        self.assertDirectoryExists(lesson_2)
+        self.assertDirectoryExists(lesson_3)
+
+        io.remove_lesson_from_directory(lesson_2)
+
+        self.assertDirectoryExists(lesson_1)
+        self.assertDirectoryExists(
+            self.unit_1_path / 'lesson-2-history')

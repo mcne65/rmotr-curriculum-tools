@@ -97,8 +97,6 @@ def read_course_from_path(course_directory_path):
 
 
 def read_unit_from_path(unit_directory_path):
-    if not isinstance(unit_directory_path, Path):
-        unit_directory_path = Path(unit_directory_path)
 
     unit_dot_rmotr = read_dot_rmotr_file(unit_directory_path)
     unit_uuid = unit_dot_rmotr['uuid']
@@ -106,6 +104,17 @@ def read_unit_from_path(unit_directory_path):
     for unit in course.iter_units():
         if unit.uuid == unit_uuid:
             return unit
+
+
+def read_lesson_from_path(lesson_directory_path):
+    unit = read_unit_from_path(lesson_directory_path.parent)
+
+    dot_rmotr = read_dot_rmotr_file(lesson_directory_path)
+    uuid = dot_rmotr['uuid']
+
+    for lesson in unit.iter_lessons():
+        if lesson.uuid == uuid:
+            return lesson
 
 
 def _create_assignment_files(lesson_directory_path):
@@ -165,8 +174,14 @@ def rename_child_object_incrementing_order(model_obj, _type):
     return model_obj.directory_path
 
 
+def rename_child_object_decrementing_order(model_obj, _type):
+    new_name = utils.generate_model_object_directory_name(
+        model_obj.name, model_obj.order - 1, _type)
+    model_obj.directory_path.rename(model_obj.parent.directory_path / new_name)
+    return model_obj.directory_path
+
+
 def make_space_between_child_objects(model_obj, order):
-    last_order = order
     if isinstance(model_obj, Course):
         _type = 'unit'
     elif isinstance(model_obj, Unit):
@@ -175,8 +190,21 @@ def make_space_between_child_objects(model_obj, order):
         raise AttributeError("Can't identify object %s" % model_obj)
 
     for child in model_obj.iter_children():
-        if child.order >= last_order:
+        if child.order >= order:
             rename_child_object_incrementing_order(child, _type)
+
+
+def _rename_other_children_after_deleting_order(model_obj, order):
+    if isinstance(model_obj, Course):
+        _type = 'unit'
+    elif isinstance(model_obj, Unit):
+        _type = 'lesson'
+    else:
+        raise AttributeError("Can't identify object %s" % model_obj)
+
+    for child in model_obj.iter_children():
+        if child.order > order:
+            rename_child_object_decrementing_order(child, _type)
 
 
 def _add_object_to_parent(directory_path, name, creation_callback,
@@ -220,3 +248,27 @@ def add_lesson_to_unit(unit_directory_path, name, _type, order=None):
         unit_directory_path, name, create_lesson,
         read_unit_from_path,
         order, {'type': _type})
+
+
+def _remove_child_from_directory(directory_path, get_model_callback):
+
+    if not isinstance(directory_path, Path):
+        directory_path = Path(directory_path)
+
+    model_obj = get_model_callback(directory_path)
+    parent = model_obj.parent
+
+    last_object = parent.last_child_object
+    if last_object.order != model_obj.order:
+        _rename_other_children_after_deleting_order(parent, model_obj.order)
+
+    import shutil
+    shutil.rmtree(str(model_obj.directory_path.absolute()))
+
+
+def remove_unit_from_directory(directory_path):
+    return _remove_child_from_directory(directory_path, read_unit_from_path)
+
+
+def remove_lesson_from_directory(directory_path):
+    return _remove_child_from_directory(directory_path, read_lesson_from_path)
