@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import pytoml as toml
 
 from .models import *

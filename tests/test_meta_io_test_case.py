@@ -3,6 +3,7 @@ import tempfile
 import pytest
 
 from base_tests import IOTestCase
+from utils import TemporaryDirectory
 
 @pytest.mark.meta_test
 class MetaIOTestCase(IOTestCase):
@@ -41,7 +42,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_is_file_raises_if_its_not_a_file(self):
         """Should raise an exception if the object is not a file"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
             self.assertTrue(os.path.isdir(tmp_dir))
@@ -56,7 +57,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_file_exists_raises_if_its_not_a_file(self):
         """Should raise an exception if the object is not a file"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
             self.assertTrue(os.path.isdir(tmp_dir))
@@ -96,7 +97,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_directory_exists(self):
         """Shouldn't raise an exception if the directory exists"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
 
@@ -104,7 +105,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_is_directory_is_correct(self):
         """Shouldn't raise an exception if the object is a directory"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
             self.assertTrue(os.path.isdir(tmp_dir))
@@ -113,7 +114,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_assert_directory_is_empty_is_correct(self):
         """Shouldn't raise an exception if the directory is empty"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
             self.assertTrue(os.path.isdir(tmp_dir))
@@ -122,7 +123,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_assert_directory_is_empty_raises_if_not_empty(self):
         """Should raise an exception if the directory is not empty"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             with open(os.path.join(tmp_dir, 'test.py'), 'w') as fp:
                 fp.write("# not empty!")
 
@@ -141,7 +142,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_assert_directory_is_not_empty_correct(self):
         """Shouldn't raise an exception if the directory is not empty"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             with open(os.path.join(tmp_dir, 'test.py'), 'w') as fp:
                 fp.write("# not empty!")
 
@@ -154,7 +155,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_assert_directory_is_not_empty_raises(self):
         """Shouldn't raise an exception if the directory is empty"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
             self.assertTrue(os.path.isdir(tmp_dir))
@@ -186,7 +187,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_assert_directory_doesnt_exist_raises(self):
         """Should raise an exception if the directory exists"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
             self.assertTrue(os.path.isdir(tmp_dir))
@@ -242,7 +243,7 @@ class MetaIOTestCase(IOTestCase):
 
     def test_assert_is_not_file_passes(self):
         """Should not raise an exception if object is not a file"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
             self.assertTrue(os.path.isdir(tmp_dir))
@@ -276,7 +277,7 @@ class MetaIOTestCase(IOTestCase):
     def test_assert_is_not_dir_raises_if_invoked_with_dir(self):
         """Should raise an exception if the object is a directory"""
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory() as tmp_dir:
             # Preconditions
             self.assertTrue(os.path.exists(tmp_dir))
             self.assertTrue(os.path.isdir(tmp_dir))

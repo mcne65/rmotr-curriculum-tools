@@ -1,4 +1,5 @@
-import unittest
+from __future__ import unicode_literals
+
 from pathlib import Path
 import tempfile
 import shutil
@@ -266,7 +267,6 @@ This is the assignment description""",
             """def test_main():
     assert True""")
 
-        # course = io.read_course_from_path(self.course_directory_path)
         unit = io.read_unit_from_path(unit_2_path)
         course = unit.course
 
