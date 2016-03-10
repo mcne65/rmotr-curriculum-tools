@@ -1,9 +1,10 @@
 import os
 import tempfile
+import pytest
 
 from base_tests import IOTestCase
 
-
+@pytest.mark.meta_test
 class MetaIOTestCase(IOTestCase):
     def test_file_exists(self):
         """Shouldn't raise an exception if the file exists"""
