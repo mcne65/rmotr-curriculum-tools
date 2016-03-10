@@ -51,12 +51,20 @@ class Course(BaseTrackObject):
         for unit in sorted(self._units, key=lambda u: u.order):
             yield unit
 
+    def iter_children(self):
+        for child in self.iter_units():
+            yield child
+
     @property
     def last_unit(self):
         if not self._units:
             return None
 
         return sorted(self._units, key=lambda u: u.order)[-1]
+
+    @property
+    def last_child_object(self):
+        return self.last_unit
 
 
 class Unit(BaseTrackObject):
@@ -86,12 +94,24 @@ class Unit(BaseTrackObject):
         for lesson in sorted(self._lessons, key=lambda l: l.order):
             yield lesson
 
+    def iter_children(self):
+        for child in self.iter_lessons():
+            yield child
+
+    @property
+    def parent(self):
+        return self.course
+
     @property
     def last_lesson(self):
         if not self._lessons:
             return None
 
         return sorted(self._lessons, key=lambda l: l.order)[-1]
+
+    @property
+    def last_child_object(self):
+        return self.last_lesson
 
 class Lesson(BaseTrackObject):
     def __init__(self, unit, uuid, name, order,
@@ -111,6 +131,10 @@ class Lesson(BaseTrackObject):
             'name': self.name,
             'type': self.type
         })
+
+    @property
+    def parent(self):
+        return self.unit
 
 
 class ReadingLesson(Lesson):

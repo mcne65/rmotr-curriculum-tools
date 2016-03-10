@@ -42,7 +42,7 @@ def get_order_from_numbered_object_directory_name(dir_name):
             '{} is not a valid numbered name'.format(dir_name))
 
 
-def _generate_directory_name(_type, name, order, include_human_name=True):
+def _generate_directory_name(name, order, _type, include_human_name=True):
     return '{type}-{order}{human_name}'.format(
         type=_type,
         order=order,
@@ -52,11 +52,15 @@ def _generate_directory_name(_type, name, order, include_human_name=True):
     )
 
 
-def generate_unit_directory_name(unit_name, order, include_human_name=True):
+def generate_model_object_directory_name(name, order, _type,
+                                         include_human_name=True):
     return _generate_directory_name(
-        'unit', unit_name, order, include_human_name)
+        name, order, _type, include_human_name)
 
 
-def generate_lesson_directory_name(unit_name, order, include_human_name=True):
-    return _generate_directory_name(
-        'lesson', unit_name, order, include_human_name)
+def generate_lesson_directory_name(name, order, include_human_name=True):
+    return _generate_directory_name(name, order, 'lesson', include_human_name)
+
+
+def generate_unit_directory_name(name, order, include_human_name=True):
+    return _generate_directory_name(name, order, 'unit', include_human_name)

@@ -106,18 +106,6 @@ def read_unit_from_path(unit_directory_path):
             return unit
 
 
-def get_last_unit(course_directory_path):
-    read_units(course_directory_path)
-
-
-def get_last_unit_order(course_directory_path):
-    if has_units(course_directory_path):
-        last_unit = get_last_unit(course_directory_path)
-        order = get_order(last_unit)
-        return order + 1
-    return 1
-
-
 def _create_assignment_files(lesson_directory_path):
     main_py_path = lesson_directory_path / MAIN_PY_NAME
     test_py_path = lesson_directory_path / TEST_PY_NAME
@@ -126,9 +114,9 @@ def _create_assignment_files(lesson_directory_path):
             fp.write('# empty')
 
 
-def create_unit(course_directory_path, name, order):
+def create_unit(directory_path, name, order):
     unit_directory_path = (
-        course_directory_path /
+        directory_path /
         utils.generate_unit_directory_name(name, order)
     )
 
@@ -145,9 +133,11 @@ def create_unit(course_directory_path, name, order):
     return unit_directory_path
 
 
-def create_lesson(unit_directory_path, name, _type, order):
+def create_lesson(directory_path, name, order, attrs):
+    _type = attrs['type']
+
     lesson_directory_path = (
-        unit_directory_path /
+        directory_path /
         utils.generate_lesson_directory_name(name, order)
     )
     lesson_directory_path.mkdir()
@@ -166,67 +156,65 @@ def create_lesson(unit_directory_path, name, _type, order):
     return lesson_directory_path
 
 
-def rename_unit_incrementing_order(unit):
-    new_name = utils.generate_unit_directory_name(unit.name, unit.order + 1)
-    unit.directory_path.rename(unit.course.directory_path / new_name)
-    return unit.directory_path
+def rename_child_object_incrementing_order(model_obj, _type):
+    new_name = utils.generate_model_object_directory_name(
+        model_obj.name, model_obj.order + 1, _type)
+    model_obj.directory_path.rename(model_obj.parent.directory_path / new_name)
+    return model_obj.directory_path
 
 
-def rename_lesson_incrementing_order(lesson):
-    new_name = utils.generate_lesson_directory_name(
-        lesson.name, lesson.order + 1)
-    lesson.directory_path.rename(lesson.unit.directory_path / new_name)
-    return lesson.directory_path
-
-
-def make_space_between_units(course, order):
+def make_space_between_child_objects(model_obj, order):
     last_order = order
-    for unit in course.iter_units():
-        if unit.order >= last_order:
-            rename_unit_incrementing_order(unit)
+    if isinstance(model_obj, Course):
+        _type = 'unit'
+    elif isinstance(model_obj, Unit):
+        _type = 'lesson'
+    else:
+        raise AttributeError("Can't identify object %s" % model_obj)
+
+    for child in model_obj.iter_children():
+        if child.order >= last_order:
+            rename_child_object_incrementing_order(child, _type)
 
 
-def make_space_between_lessons(unit, order):
-    last_order = order
-    for lesson in unit.iter_lessons():
-        if lesson.order >= last_order:
-            rename_lesson_incrementing_order(lesson)
+def _add_object_to_parent(directory_path, name, creation_callback,
+                          get_model_callback,
+                          order=None,
+                          creation_attributes=None):
+
+    if not isinstance(directory_path, Path):
+        directory_path = Path(directory_path)
+
+    model_obj = get_model_callback(directory_path)
+    last_object = model_obj.last_child_object
+    last_object_order = (last_object and last_object.order) or 0
+
+    if order is None:
+        order = last_object_order + 1
+
+    rename = (order <= last_object_order)
+    if rename:
+        make_space_between_child_objects(model_obj, order)
+
+    creation_kwargs = {
+        'directory_path': directory_path,
+        'name': name,
+        'order': order
+    }
+    if creation_attributes:
+        creation_kwargs['attrs'] = creation_attributes
+
+    return creation_callback(**creation_kwargs)
 
 
 def add_unit_to_course(course_directory_path, name, order=None):
-    if not isinstance(course_directory_path, Path):
-        course_directory_path = Path(course_directory_path)
-
-    course = read_course_from_path(course_directory_path)
-
-    last_unit = course.last_unit
-    last_unit_order = (last_unit and last_unit.order) or 0
-
-    if order is None:
-        order = last_unit_order + 1
-
-    rename = (order <= last_unit_order)
-    if rename:
-        make_space_between_units(course, order)
-
-    return create_unit(course_directory_path, name, order)
+    return _add_object_to_parent(
+        course_directory_path, name, create_unit,
+        read_course_from_path, order)
 
 
 def add_lesson_to_unit(unit_directory_path, name, _type, order=None):
-    if not isinstance(unit_directory_path, Path):
-        unit_directory_path = Path(unit_directory_path)
-
-    unit = read_unit_from_path(unit_directory_path)
-
-    last_lesson = unit.last_lesson
-    last_lesson_order = (last_lesson and last_lesson.order) or 0
-
-    if order is None:
-        order = last_lesson_order + 1
-
-    rename = (order <= last_lesson_order)
-
-    if rename:
-        make_space_between_lessons(unit, order)
-
-    return create_lesson(unit_directory_path, name, _type, order)
+    return _add_object_to_parent(
+        unit_directory_path, name, create_lesson,
+        read_unit_from_path,
+        order, {'type': _type})
