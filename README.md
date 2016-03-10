@@ -1,3 +1,5 @@
+<a href="https://travis-ci.org/rmotr/rmotr-curriculum-tools" target="_blank"><img src="https://travis-ci.org/rmotr/rmotr-curriculum-tools.svg"></a>
+
 # rmotr.com curriculum tools
 
 Currently available commands:
