@@ -55,11 +55,11 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
-        import sys, pytest
+        # import here, cause outside the eggs aren't loaded
+        import sys
+        import pytest
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
-
 
 setup(
     name=VALUES['__title__'],
@@ -71,10 +71,16 @@ setup(
     author='Santiago Basulto',
     author_email='santiago.basulto@gmail.com',
     license='MIT',
+    scripts=['main.py'],
     packages=[package_name],
     maintainer='Santiago Basulto',
     install_requires=requirements,
     tests_require=dev_requirements,
+    entry_points={
+        'console_scripts': [
+            'rmotr_curriculum_tools = main:rmotr_curriculum_tools'
+        ]
+    },
     zip_safe=True,
     cmdclass={'test': PyTest},
 )
