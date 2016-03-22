@@ -139,7 +139,7 @@ def create_unit(directory_path, name, order):
         fp.write(utils.generate_unit_dot_rmotr_file(name=name))
 
     with readme_path.open(mode='w') as fp:
-        fp.write('# empty')
+        fp.write('# {}\n'.format(name))
 
     return unit_directory_path
 
@@ -159,7 +159,7 @@ def create_lesson(directory_path, name, order, attrs):
         fp.write(utils.generate_lesson_dot_rmotr_file(name=name, _type=_type))
 
     with readme_path.open(mode='w') as fp:
-        fp.write('# empty')
+        fp.write('# {}\n'.format(name))
 
     if _type == ASSIGNMENT:
         _create_assignment_files(lesson_directory_path)

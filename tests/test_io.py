@@ -340,15 +340,22 @@ track = "python"
 
         unit_path = self.course_directory_path / 'unit-1-python-intro'
         dot_rmotr_path = unit_path / '.rmotr'
+        readme_path = unit_path / 'README.md'
 
         self.assertEqual(generated_unit_path, unit_path)
         self.assertDirectoryExists(unit_path)
         self.assertFileExists(dot_rmotr_path)
+        self.assertFileExists(readme_path)
 
         with dot_rmotr_path.open() as fp:
             dot_rmotr_content = toml.loads(fp.read())
             self.assertTrue('uuid' in dot_rmotr_content)
             self.assertEqual(dot_rmotr_content['name'], 'Python Intro')
+
+        with readme_path.open('r') as fp:
+            content = fp.read()
+            self.assertEqual(content, """# Python Intro
+""")
 
     def test_add_unit_to_not_empty_course_at_end(self):
         self._create_testing_unit(
@@ -364,14 +371,21 @@ track = "python"
 
         unit_path = self.course_directory_path / 'unit-2-data-types'
         dot_rmotr_path = unit_path / '.rmotr'
+        readme_path = unit_path / 'README.md'
 
         self.assertDirectoryExists(unit_path)
         self.assertFileExists(dot_rmotr_path)
+        self.assertFileExists(readme_path)
 
         with dot_rmotr_path.open() as fp:
             dot_rmotr_content = toml.loads(fp.read())
             self.assertTrue('uuid' in dot_rmotr_content)
             self.assertEqual(dot_rmotr_content['name'], 'Data Types')
+
+        with readme_path.open('r') as fp:
+            content = fp.read()
+            self.assertEqual(content, """# Data Types
+""")
 
     def test_add_unit_to_course_in_between_other_units(self):
         self._create_testing_unit(
@@ -502,6 +516,8 @@ track = "python"
             self.assertEqual(dot_rmotr_content['name'], 'Python Lists')
 
         self.assertFileExists(readme_path)
+        with readme_path.open('r') as fp:
+            self.assertEqual(fp.read(), "# Python Lists\n")
 
     def test_add_lesson_at_the_end_of_unit(self):
         io.add_lesson_to_unit(self.unit_2_path, 'Python Lists', 'reading')
