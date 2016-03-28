@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from pathlib import Path
 import pytoml as toml
 
 from .models import *

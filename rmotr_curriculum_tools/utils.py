@@ -1,6 +1,7 @@
 import re
 import uuid as uuid_module
 import pytoml as toml
+from bs4 import BeautifulSoup
 
 from .exceptions import InvalidUnitNameException
 
@@ -8,6 +9,8 @@ try:
     unicode_type = unicode
 except NameError:
     unicode_type = str
+
+AVOID_COUNT_TAGS = ['code', 'pre']
 
 _punct_re = re.compile(r'[\t !"#$%&\'()*\-/<=>?@\[\\\]^_`{|},.]+')
 
@@ -64,3 +67,11 @@ def generate_lesson_directory_name(name, order, include_human_name=True):
 
 def generate_unit_directory_name(name, order, include_human_name=True):
     return _generate_directory_name(name, order, 'unit', include_human_name)
+
+
+def count_words(markdown_content):
+    count = 0
+    for tag in BeautifulSoup(markdown_content, "html.parser").find_all():
+        if tag.name not in AVOID_COUNT_TAGS:
+            count += len([w for w in tag.text.split(" ") if w])
+    return count
