@@ -497,7 +497,7 @@ track = "python"
     def tearDown(self):
         shutil.rmtree(str(self.course_directory_path.absolute()))
 
-    def test_add_lesson_to_empty_unit(self):
+    def test_add_reading_lesson_to_empty_unit(self):
         io.add_lesson_to_unit(self.unit_3_path, 'Python Lists', 'reading')
 
         # Postconditions
@@ -518,6 +518,39 @@ track = "python"
         self.assertFileExists(readme_path)
         with readme_path.open('r') as fp:
             self.assertEqual(fp.read(), "# Python Lists\n")
+
+    def test_add_assignment_lesson_to_empty_unit(self):
+        io.add_lesson_to_unit(self.unit_3_path, 'Python Lists', 'assignment')
+
+        # Postconditions
+        self.assertDirectoryIsNotEmpty(self.unit_3_path)
+
+        lesson_path = self.unit_3_path / 'lesson-1-python-lists'
+        dot_romtr_path = lesson_path / '.rmotr'
+        readme_path = lesson_path / 'README.md'
+
+        self.assertDirectoryExists(lesson_path)
+        self.assertDirectoryIsNotEmpty(lesson_path)
+
+        with dot_romtr_path.open('r') as fp:
+            dot_rmotr_content = toml.loads(fp.read())
+            self.assertTrue('uuid' in dot_rmotr_content)
+            self.assertEqual(dot_rmotr_content['name'], 'Python Lists')
+
+        self.assertFileExists(readme_path)
+        with readme_path.open('r') as fp:
+            self.assertEqual(fp.read(), "# Python Lists\n")
+
+        # tests.py and main.py files are created
+        main_py_path = lesson_path / 'main.py'
+        tests_py_path = lesson_path / 'tests.py'
+
+        self.assertFileExists(main_py_path)
+        self.assertFileExists(tests_py_path)
+
+        # Solutions
+        solutions_path = lesson_path / 'solutions'
+        self.assertDirectoryExists(solutions_path)
 
     def test_add_lesson_at_the_end_of_unit(self):
         io.add_lesson_to_unit(self.unit_2_path, 'Python Lists', 'reading')
