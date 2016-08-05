@@ -1,7 +1,12 @@
 import re
+import click
 import uuid as uuid_module
 import pytoml as toml
 from bs4 import BeautifulSoup
+try:
+    import urlparse
+except:
+    import urllib.parse as urlparse
 
 from .exceptions import InvalidUnitNameException
 
@@ -29,12 +34,19 @@ def generate_unit_dot_rmotr_file(name, uuid=None):
     })
 
 
-def generate_lesson_dot_rmotr_file(name, _type, uuid=None):
-    return toml.dumps({
+def generate_lesson_dot_rmotr_file(name, _type, uuid=None, repo=None):
+    dot_rmotr_content = {
         'uuid': str(uuid or uuid_module.uuid4()),
         'name': name,
         'type': _type
-    })
+    }
+    if repo:
+        repo_org, repo_name = urlparse.urlparse(repo).path.strip('/').split('/')
+        dot_rmotr_content.update({
+            'assignment_repo_org': repo_org,
+            'assignment_repo_name': repo_name,
+        })
+    return toml.dumps(dot_rmotr_content)
 
 
 def get_order_from_numbered_object_directory_name(dir_name):
@@ -75,3 +87,9 @@ def count_words(markdown_content):
         if tag.name not in AVOID_COUNT_TAGS:
             count += len([w for w in tag.text.split(" ") if w])
     return count
+
+
+def validate_gh_url(ctx, param, value):
+    if value and not value.startswith('https://github.com/'):
+        raise click.BadParameter('Must be a valid Github HTTPS URL')
+    return value

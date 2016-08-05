@@ -3,7 +3,7 @@ from pathlib import Path
 import markdown
 
 from rmotr_curriculum_tools import io, utils
-from rmotr_curriculum_tools.models import READING, ASSIGNMENT
+from rmotr_curriculum_tools.models import READING, ASSIGNMENT, EXTERNAL_ASSIGNMENT
 
 
 @click.group()
@@ -24,9 +24,17 @@ def create_unit(path_to_course, name, order):
 @click.argument('name', type=str)
 @click.option('-o', '--order', default=None, type=int)
 @click.option('-t', '--type',
-              type=click.Choice([READING, ASSIGNMENT]), required=True)
-def create_lesson(path_to_unit, name, type, order):
-    io.add_lesson_to_unit(path_to_unit, name, type, order)
+              type=click.Choice([READING, ASSIGNMENT, EXTERNAL_ASSIGNMENT]),
+              required=True)
+@click.option('-r', '--repo', default=None, type=str,
+              callback=utils.validate_gh_url,
+              help="Github repository URL. ie: https://github.com/:org/:repo")
+def create_lesson(path_to_unit, name, type, order, repo):
+    if type == EXTERNAL_ASSIGNMENT and not repo:
+        raise click.BadParameter(
+            'Repository URL must be provided (--repo) when creating an '
+            'external assignment lesson')
+    io.add_lesson_to_unit(path_to_unit, name, type, order, repo)
 
 
 @rmotr_curriculum_tools.command()

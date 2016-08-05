@@ -552,6 +552,35 @@ track = "python"
         solutions_path = lesson_path / 'solutions'
         self.assertDirectoryExists(solutions_path)
 
+    def test_add_external_assignment_lesson_to_empty_unit(self):
+        io.add_lesson_to_unit(
+            self.unit_3_path,
+            'First django project',
+            'external_assignment',
+            repo='https://github.com/rmotr-individual-assignments/pyp-test-assignment'
+        )
+
+        # Postconditions
+        self.assertDirectoryIsNotEmpty(self.unit_3_path)
+
+        lesson_path = self.unit_3_path / 'lesson-1-first-django-project'
+        dot_romtr_path = lesson_path / '.rmotr'
+        readme_path = lesson_path / 'README.md'
+
+        self.assertDirectoryExists(lesson_path)
+        self.assertDirectoryIsNotEmpty(lesson_path)
+
+        with dot_romtr_path.open('r') as fp:
+            dot_rmotr_content = toml.loads(fp.read())
+            self.assertTrue('uuid' in dot_rmotr_content)
+            self.assertEqual(dot_rmotr_content['name'], 'First django project')
+            self.assertEqual(dot_rmotr_content['assignment_repo_org'], 'rmotr-individual-assignments')
+            self.assertEqual(dot_rmotr_content['assignment_repo_name'], 'pyp-test-assignment')
+
+        self.assertFileExists(readme_path)
+        with readme_path.open('r') as fp:
+            self.assertEqual(fp.read(), "# First django project\n")
+
     def test_add_lesson_at_the_end_of_unit(self):
         io.add_lesson_to_unit(self.unit_2_path, 'Python Lists', 'reading')
 

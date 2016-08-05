@@ -149,6 +149,7 @@ def create_unit(directory_path, name, order):
 
 def create_lesson(directory_path, name, order, attrs):
     _type = attrs['type']
+    repo = attrs['repo']
 
     lesson_directory_path = (
         directory_path /
@@ -159,7 +160,8 @@ def create_lesson(directory_path, name, order, attrs):
     readme_path = lesson_directory_path / README_FILE_NAME
 
     with dot_rmotr_path.open(mode='w') as fp:
-        fp.write(utils.generate_lesson_dot_rmotr_file(name=name, _type=_type))
+        fp.write(utils.generate_lesson_dot_rmotr_file(
+            name=name, _type=_type, repo=repo))
 
     with readme_path.open(mode='w') as fp:
         fp.write('# {}\n'.format(name))
@@ -246,11 +248,11 @@ def add_unit_to_course(course_directory_path, name, order=None):
         read_course_from_path, order)
 
 
-def add_lesson_to_unit(unit_directory_path, name, _type, order=None):
+def add_lesson_to_unit(unit_directory_path, name, _type, order=None, repo=None):
     return _add_object_to_parent(
         unit_directory_path, name, create_lesson,
         read_unit_from_path,
-        order, {'type': _type})
+        order, {'type': _type, 'repo': repo})
 
 
 def _remove_child_from_directory(directory_path, get_model_callback):

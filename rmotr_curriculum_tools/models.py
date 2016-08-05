@@ -3,8 +3,9 @@ from pathlib import Path
 
 from .utils import slugify
 
-ASSIGNMENT = 'assignment'
 READING = 'reading'
+ASSIGNMENT = 'assignment'
+EXTERNAL_ASSIGNMENT = 'external_assignment'
 
 
 class BaseTrackObject(object):
@@ -145,8 +146,11 @@ class ReadingLesson(Lesson):
 
 class AssignmentLesson(Lesson):
     def __init__(self, *args, **kwargs):
-        # self.main_content = kwargs.pop('main_content')
-        # self.tests_content = kwargs.pop('tests_content')
-
         super(AssignmentLesson, self).__init__(*args, **kwargs)
         self.type = ASSIGNMENT
+
+
+class ExternalAssignmentLesson(Lesson):
+    def __init__(self, *args, **kwargs):
+        super(ExternalAssignmentLesson, self).__init__(*args, **kwargs)
+        self.type = EXTERNAL_ASSIGNMENT
