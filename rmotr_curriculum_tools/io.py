@@ -27,6 +27,8 @@ def get_lesson_class_from_type(_type):
         return ReadingLesson
     elif _type == ASSIGNMENT:
         return AssignmentLesson
+    elif _type == EXTERNAL_ASSIGNMENT:
+        return ExternalAssignmentLesson
 
     raise exceptions.InvalidLessonTypeException(
         '{} is not a valid lesson type'.format(_type))
