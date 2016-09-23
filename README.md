@@ -20,6 +20,10 @@ $ rmotr_curriculum_tools remove_unit PATH_TO_UNIT
 $ rmotr_curriculum_tools remove_lesson PATH_TO_LESSON
 ```
 
+### Installation
+
+`$ pip install rmotr_curriculum_tools`
+
 ### Testing
 
 ```bash
