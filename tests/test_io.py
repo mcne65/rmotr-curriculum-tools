@@ -541,16 +541,23 @@ track = "python"
         with readme_path.open('r') as fp:
             self.assertEqual(fp.read(), "# Python Lists\n")
 
-        # tests.py and main.py files are created
-        main_py_path = lesson_path / 'main.py'
-        tests_py_path = lesson_path / 'tests.py'
-
-        self.assertFileExists(main_py_path)
-        self.assertFileExists(tests_py_path)
-
-        # Solutions
+        # Dirs to create
+        tests_path = lesson_path / 'tests'
         solutions_path = lesson_path / 'solutions'
+
+        # Check dirs are created
+        self.assertDirectoryExists(tests_path)
         self.assertDirectoryExists(solutions_path)
+
+        # Files to create
+        main_py_path = lesson_path / 'main.py'
+        empty_test_path = tests_path / 'test_.py'
+        empty_solution_path = solutions_path / 'solution_.py'
+
+        # Check files
+        self.assertFileExists(main_py_path)
+        self.assertFileExists(empty_test_path)
+        self.assertFileExists(empty_solution_path)
 
     def test_add_lesson_at_the_end_of_unit(self):
         io.add_lesson_to_unit(self.unit_2_path, 'Python Lists', 'reading')
@@ -591,13 +598,26 @@ track = "python"
             self.assertTrue('uuid' in dot_rmotr_content)
             self.assertEqual(dot_rmotr_content['name'], 'Python Lists')
 
-        main_py_path = lesson_path / 'main.py'
-        tests_py_path = lesson_path / 'tests.py'
-
-        self.assertFileExists(main_py_path)
-        self.assertFileExists(tests_py_path)
-
         self.assertFileExists(readme_path)
+
+
+        # Dirs to create
+        tests_path = lesson_path / 'tests'
+        solutions_path = lesson_path / 'solutions'
+
+        # Check dirs are created
+        self.assertDirectoryExists(tests_path)
+        self.assertDirectoryExists(solutions_path)
+
+        # Files to create
+        main_py_path = lesson_path / 'main.py'
+        empty_test_path = tests_path / 'test_.py'
+        empty_solution_path = solutions_path / 'solution_.py'
+
+        # Check files
+        self.assertFileExists(main_py_path)
+        self.assertFileExists(empty_test_path)
+        self.assertFileExists(empty_solution_path)
 
         # Previous lessons
 

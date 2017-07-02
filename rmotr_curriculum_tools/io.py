@@ -12,8 +12,11 @@ LESSON_GLOB = 'lesson-*'
 DOT_RMOTR_FILE_NAME = '.rmotr'
 README_FILE_NAME = 'README.md'
 MAIN_PY_NAME = 'main.py'
-TEST_PY_NAME = 'tests.py'
+TESTS_DIR_NAME = 'tests'
 SOLUTIONS_DIR_NAME = 'solutions'
+TEST_PY_NAME = 'test_.py'
+EMPTY_SOLUTION_NAME = 'solution_.py'
+
 
 def read_dot_rmotr_file(path):
     dot_rmotr_path = path / DOT_RMOTR_FILE_NAME
@@ -120,13 +123,18 @@ def read_lesson_from_path(lesson_directory_path):
 
 def _create_assignment_files(lesson_directory_path):
     main_py_path = lesson_directory_path / MAIN_PY_NAME
-    test_py_path = lesson_directory_path / TEST_PY_NAME
+    tests_path = lesson_directory_path / TESTS_DIR_NAME
     solutions_path = lesson_directory_path / SOLUTIONS_DIR_NAME
-    for file_path in [main_py_path, test_py_path]:
+
+    empty_test_path = tests_path / TEST_PY_NAME
+    empty_solution_path = solutions_path / EMPTY_SOLUTION_NAME
+
+    tests_path.mkdir()
+    solutions_path.mkdir()
+    for file_path in [main_py_path, empty_test_path, empty_solution_path]:
         with file_path.open(mode='w') as fp:
             fp.write('# empty')
 
-    solutions_path.mkdir()
 
 def create_unit(directory_path, name, order):
     unit_directory_path = (

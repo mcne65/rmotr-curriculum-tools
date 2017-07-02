@@ -33,6 +33,7 @@ def extract_requirements_from_file(req_file_name):
         return [line.strip() for line in fp
                 if line.strip() and not line.startswith('-r')]
 
+
 requirements = extract_requirements_from_file('requirements.txt')
 dev_requirements = (requirements +
                     extract_requirements_from_file('requirements-dev.txt'))
@@ -60,6 +61,7 @@ class PyTest(TestCommand):
         import pytest
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
+
 
 setup(
     name=VALUES['__title__'],

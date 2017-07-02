@@ -1,4 +1,4 @@
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 __title__ = 'rmotr_curriculum_tools'
 __license__ = 'MIT'
 
